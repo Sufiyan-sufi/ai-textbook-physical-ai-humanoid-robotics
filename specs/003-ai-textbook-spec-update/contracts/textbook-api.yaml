@@ -1,0 +1,170 @@
+openapi: 3.0.0
+info:
+  title: Textbook API
+  description: API for managing textbook content and user interactions
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+
+paths:
+  /textbook/chapters:
+    get:
+      summary: List all textbook chapters
+      responses:
+        '200':
+          description: List of chapters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Chapter'
+        '500':
+          description: Internal server error
+
+  /textbook/chapters/{slug}:
+    get:
+      summary: Get a specific chapter
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Chapter slug identifier
+      responses:
+        '200':
+          description: Chapter details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+        '404':
+          description: Chapter not found
+        '500':
+          description: Internal server error
+
+  /textbook/tutorials:
+    get:
+      summary: List all tutorials
+      responses:
+        '200':
+          description: List of tutorials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tutorial'
+        '500':
+          description: Internal server error
+
+  /textbook/tutorials/{id}:
+    get:
+      summary: Get a specific tutorial
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Tutorial ID
+      responses:
+        '200':
+          description: Tutorial details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tutorial'
+        '404':
+          description: Tutorial not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Chapter:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        content:
+          type: string
+        word_count:
+          type: integer
+        learning_outcomes:
+          type: array
+          items:
+            type: string
+        prerequisites:
+          type: array
+          items:
+            type: string
+        next_chapters:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+      required:
+        - id
+        - title
+        - slug
+        - content
+        - word_count
+        - learning_outcomes
+
+    Tutorial:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        chapter_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        content:
+          type: string
+        simulation_environment:
+          type: string
+          enum: [gazebo, isaac, unity]
+        hardware_target:
+          type: string
+          enum: [jetson, rtx, simulation-only]
+        estimated_duration:
+          type: integer
+        code_examples:
+          type: array
+          items:
+            type: string
+        learning_outcomes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - chapter_id
+        - title
+        - content
+        - simulation_environment
+        - hardware_target

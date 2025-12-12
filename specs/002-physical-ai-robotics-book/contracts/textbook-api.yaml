@@ -1,0 +1,79 @@
+# API Contracts: Textbook on Physical AI & Humanoid Robotics
+
+## Simulation Management API
+
+### POST /api/simulations/{environment}/start
+Start a simulation environment (Gazebo, Unity, Isaac Sim)
+- **Request**: Simulation configuration object
+- **Response**: Simulation session ID and connection details
+- **Authentication**: Required for resource management
+
+### POST /api/simulations/{environment}/stop
+Stop a running simulation
+- **Request**: Session ID
+- **Response**: Success confirmation
+- **Authentication**: Required
+
+### POST /api/simulations/{environment}/execute
+Execute a command in the simulation environment
+- **Request**: Session ID, command, parameters
+- **Response**: Command output and execution status
+- **Authentication**: Required
+
+## Textbook Content API
+
+### GET /api/textbook/chapters
+Retrieve available textbook chapters
+- **Response**: List of chapter metadata
+- **Authentication**: Optional (required for advanced content)
+
+### GET /api/textbook/chapters/{id}
+Retrieve specific chapter content
+- **Response**: Chapter content in structured format
+- **Authentication**: Optional
+
+### GET /api/textbook/tutorials
+Retrieve available tutorials
+- **Response**: List of tutorial metadata
+- **Authentication**: Optional
+
+## AI Tutor API
+
+### POST /api/ai/tutor/chat
+Send message to the AI tutor
+- **Request**: User message, context (chapter, tutorial, code)
+- **Response**: AI-generated response with explanations
+- **Authentication**: Required
+
+### POST /api/ai/tutor/code-explain
+Request explanation for code snippets
+- **Request**: Code snippet, simulation context
+- **Response**: Detailed code explanation
+- **Authentication**: Required
+
+## ROS 2 Integration API
+
+### POST /api/ros2/execute
+Execute ROS 2 commands in the simulation
+- **Request**: ROS 2 command, parameters, namespace
+- **Response**: Command execution results
+- **Authentication**: Required
+
+### GET /api/ros2/nodes
+List active ROS 2 nodes
+- **Response**: List of active nodes with status
+- **Authentication**: Required
+
+## File Management API
+
+### POST /api/files/upload
+Upload simulation assets or code
+- **Request**: File data, metadata
+- **Response**: File ID and access path
+- **Authentication**: Required
+- **Validation**: File type and size restrictions apply
+
+### GET /api/files/download/{id}
+Download uploaded file
+- **Response**: File content
+- **Authentication**: Required

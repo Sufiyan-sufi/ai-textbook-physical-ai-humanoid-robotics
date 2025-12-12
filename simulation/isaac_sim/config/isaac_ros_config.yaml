@@ -1,0 +1,128 @@
+# Isaac ROS Configuration for Textbook Humanoid Robot
+
+# General settings
+general:
+  robot_name: "humanoid_robot"
+  namespace: "humanoid"
+  use_sim_time: true
+
+# ROS bridge settings
+ros_bridge:
+  # Topic remappings
+  remappings:
+    - from: "/joint_states"
+      to: "/humanoid/joint_states"
+    - from: "/tf"
+      to: "/humanoid/tf"
+    - from: "/tf_static"
+      to: "/humanoid/tf_static"
+
+  # Services
+  services:
+    enable_joint_trajectory_service: true
+    joint_trajectory_service_name: "/humanoid/follow_joint_trajectory"
+
+# Control settings
+control:
+  joint_state_publish_rate: 50.0  # Hz
+  command_publish_rate: 100.0     # Hz
+
+  # Joint configuration for the humanoid
+  joints:
+    left_arm:
+      shoulder:
+        name: "left_shoulder_joint"
+        type: "revolute"
+        limits:
+          min_position: -1.57
+          max_position: 1.57
+          max_velocity: 2.0
+          max_effort: 100.0
+      elbow:
+        name: "left_elbow_joint"
+        type: "revolute"
+        limits:
+          min_position: -1.57
+          max_position: 1.57
+          max_velocity: 2.0
+          max_effort: 100.0
+
+    right_arm:
+      shoulder:
+        name: "right_shoulder_joint"
+        type: "revolute"
+        limits:
+          min_position: -1.57
+          max_position: 1.57
+          max_velocity: 2.0
+          max_effort: 100.0
+      elbow:
+        name: "right_elbow_joint"
+        type: "revolute"
+        limits:
+          min_position: -1.57
+          max_position: 1.57
+          max_velocity: 2.0
+          max_effort: 100.0
+
+    left_leg:
+      hip:
+        name: "left_hip_joint"
+        type: "revolute"
+        limits:
+          min_position: -1.57
+          max_position: 1.57
+          max_velocity: 2.0
+          max_effort: 100.0
+      knee:
+        name: "left_knee_joint"
+        type: "revolute"
+        limits:
+          min_position: -1.57
+          max_position: 1.57
+          max_velocity: 2.0
+          max_effort: 100.0
+
+    right_leg:
+      hip:
+        name: "right_hip_joint"
+        type: "revolute"
+        limits:
+          min_position: -1.57
+          max_position: 1.57
+          max_velocity: 2.0
+          max_effort: 100.0
+      knee:
+        name: "right_knee_joint"
+        type: "revolute"
+        limits:
+          min_position: -1.57
+          max_position: 1.57
+          max_velocity: 2.0
+          max_effort: 100.0
+
+# Perception settings
+perception:
+  camera:
+    enable: true
+    topic_name: "/humanoid/camera/image_raw"
+    frame_id: "head_camera_link"
+    resolution:
+      width: 640
+      height: 480
+    fps: 30
+
+  lidar:
+    enable: false
+    topic_name: "/humanoid/lidar/scan"
+    frame_id: "lidar_link"
+
+# Physics settings
+physics:
+  update_rate: 1000  # Hz
+  solver_type: "pgs"  # Projected Gauss-Seidel
+  enable_gravity: true
+  gravity:
+    x: 0.0
+    y: 0.0
+    z: -9.81

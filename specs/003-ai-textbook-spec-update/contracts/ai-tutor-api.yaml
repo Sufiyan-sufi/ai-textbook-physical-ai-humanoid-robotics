@@ -1,0 +1,242 @@
+openapi: 3.0.0
+info:
+  title: AI Tutor API
+  description: API for AI-powered tutoring and RAG services
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+
+paths:
+  /ai-tutor/chat:
+    post:
+      summary: Chat with AI tutor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: AI tutor response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+
+  /ai-tutor/query:
+    post:
+      summary: Query textbook content using RAG
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: RAG response with context from textbook
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+
+  /ai-tutor/personalize:
+    post:
+      summary: Personalize content based on user preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonalizeRequest'
+      responses:
+        '200':
+          description: Personalized content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalizeResponse'
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+
+  /ai-tutor/translate:
+    post:
+      summary: Translate content to Urdu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslateRequest'
+      responses:
+        '200':
+          description: Translated content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranslateResponse'
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User ID (optional)
+        message:
+          type: string
+          description: User's message to the AI tutor
+        context:
+          type: object
+          description: Additional context for the conversation
+        chapter_id:
+          type: string
+          format: uuid
+          description: Current chapter context (optional)
+      required:
+        - message
+
+    ChatResponse:
+      type: object
+      properties:
+        response:
+          type: string
+          description: AI tutor's response
+        sources:
+          type: array
+          items:
+            type: string
+          description: Sources referenced in the response
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Confidence level of the response
+        timestamp:
+          type: string
+          format: date-time
+
+    QueryRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          description: User's question about textbook content
+        user_id:
+          type: string
+          format: uuid
+          description: User ID (optional)
+        chapter_id:
+          type: string
+          format: uuid
+          description: Current chapter context (optional)
+        max_results:
+          type: integer
+          default: 5
+          description: Maximum number of results to return
+      required:
+        - query
+
+    QueryResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+          description: Answer to the user's question
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentSource'
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Confidence level of the answer
+        timestamp:
+          type: string
+          format: date-time
+
+    PersonalizeRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          description: Original content to personalize
+        user_id:
+          type: string
+          format: uuid
+          description: User ID for personalization preferences
+        learning_preferences:
+          type: object
+          description: User's learning preferences
+      required:
+        - content
+        - user_id
+
+    PersonalizeResponse:
+      type: object
+      properties:
+        personalized_content:
+          type: string
+          description: Personalized version of the content
+        applied_modifications:
+          type: array
+          items:
+            type: string
+          description: List of modifications applied
+
+    TranslateRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          description: Content to translate to Urdu
+        preserve_technical_accuracy:
+          type: boolean
+          default: true
+          description: Whether to preserve technical accuracy during translation
+      required:
+        - content
+
+    TranslateResponse:
+      type: object
+      properties:
+        translated_content:
+          type: string
+          description: Content translated to Urdu
+        original_content:
+          type: string
+          description: Original content for reference
+
+    ContentSource:
+      type: object
+      properties:
+        chapter_id:
+          type: string
+          format: uuid
+        chapter_title:
+          type: string
+        content_snippet:
+          type: string
+        relevance_score:
+          type: number
+          minimum: 0
+          maximum: 1

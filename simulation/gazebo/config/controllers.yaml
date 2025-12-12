@@ -1,0 +1,71 @@
+# Controller manager configuration
+controller_manager:
+  ros__parameters:
+    use_sim_time: true
+    update_rate: 100  # Hz
+
+    # Joint trajectory controller for the humanoid
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # Individual joint controllers
+    left_shoulder_controller:
+      type: position_controllers/JointPositionController
+      joint: left_shoulder_joint
+
+    left_elbow_controller:
+      type: position_controllers/JointPositionController
+      joint: left_elbow_joint
+
+    right_shoulder_controller:
+      type: position_controllers/JointPositionController
+      joint: right_shoulder_joint
+
+    right_elbow_controller:
+      type: position_controllers/JointPositionController
+      joint: right_elbow_joint
+
+    left_hip_controller:
+      type: position_controllers/JointPositionController
+      joint: left_hip_joint
+
+    left_knee_controller:
+      type: position_controllers/JointPositionController
+      joint: left_knee_joint
+
+    right_hip_controller:
+      type: position_controllers/JointPositionController
+      joint: right_hip_joint
+
+    right_knee_controller:
+      type: position_controllers/JointPositionController
+      joint: right_knee_joint
+
+# Joint trajectory controller configuration
+joint_trajectory_controller:
+  ros__parameters:
+    joints:
+      - left_shoulder_joint
+      - left_elbow_joint
+      - right_shoulder_joint
+      - right_elbow_joint
+      - left_hip_joint
+      - left_knee_joint
+      - right_hip_joint
+      - right_knee_joint
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    open_loop_control: true
+    allow_integration_in_goal_trajectories: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
