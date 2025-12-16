@@ -1,0 +1,3 @@
+[submodule "my-website"]
+    path = my-website
+    url = https://github.com/Sufiyan-sufi/my-website.git
