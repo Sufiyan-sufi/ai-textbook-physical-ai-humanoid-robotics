@@ -15,8 +15,12 @@ from src.utils.content_parser import ContentParser
 class VectorInitializer:
     """Initialize vector embeddings for the textbook content"""
 
-    def __init__(self, qdrant_url: str = "http://localhost:6333", textbook_path: str = None):
-        self.vector_service = VectorService(qdrant_url=qdrant_url)
+    def __init__(self, qdrant_url: str = "http://localhost:6333", qdrant_api_key: str = None, qdrant_cluster_url: str = None, textbook_path: str = None):
+        self.vector_service = VectorService(
+            qdrant_url=qdrant_url,
+            qdrant_api_key=qdrant_api_key,
+            qdrant_cluster_url=qdrant_cluster_url
+        )
         self.content_parser = ContentParser()
         self.textbook_path = textbook_path or "my-website/content/chapters"
         self.logger = logging.getLogger(__name__)
@@ -156,6 +160,8 @@ async def main():
     # Initialize the vector initializer
     initializer = VectorInitializer(
         qdrant_url=os.getenv("QDRANT_URL", "http://localhost:6333"),
+        qdrant_api_key=os.getenv("QDRANT_API_KEY"),
+        qdrant_cluster_url=os.getenv("QDRANT_CLUSTER_URL"),
         textbook_path=os.getenv("TEXTBOOK_PATH", "my-website/content/chapters")
     )
 

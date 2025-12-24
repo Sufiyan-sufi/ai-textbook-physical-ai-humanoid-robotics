@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #25c2a0;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2e7d32;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Tutor API Test</h1>
+
+    <div class="container">
+        <h2>Test 1: Health Check</h2>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <div id="health-result" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>Test 2: RAG Query</h2>
+        <input type="text" id="query-input" value="What is Physical AI?" placeholder="Enter your query">
+        <button onclick="testQuery()">Test Query Endpoint</button>
+        <div id="query-result" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="container">
+        <h2>Test 3: Chat (may fail due to OpenAI config)</h2>
+        <input type="text" id="chat-input" value="Explain embodied cognition" placeholder="Enter your message">
+        <button onclick="testChat()">Test Chat Endpoint</button>
+        <div id="chat-result" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                resultDiv.textContent = `Success: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function testQuery() {
+            const resultDiv = document.getElementById('query-result');
+            const queryInput = document.getElementById('query-input');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/ai-tutor/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: queryInput.value,
+                        max_results: 3
+                    })
+                });
+                const data = await response.json();
+                resultDiv.textContent = `Success: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function testChat() {
+            const resultDiv = document.getElementById('chat-result');
+            const chatInput = document.getElementById('chat-input');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/ai-tutor/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: chatInput.value,
+                        context: { learning_level: 'beginner' }
+                    })
+                });
+                const data = await response.json();
+                resultDiv.textContent = `Success: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

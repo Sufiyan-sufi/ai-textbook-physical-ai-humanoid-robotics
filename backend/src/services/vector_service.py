@@ -12,15 +12,67 @@ import aiofiles
 class VectorService:
     """Service for managing vector embeddings in Qdrant for RAG retrieval"""
 
-    def __init__(self, qdrant_url: str = "http://localhost:6333", collection_name: str = "textbook_content"):
-        self.qdrant_client = QdrantClient(url=qdrant_url)
+    def __init__(self, qdrant_url: str = "http://localhost:6333", collection_name: str = "textbook_content", qdrant_api_key: str = None, qdrant_cluster_url: str = None):
+        self.qdrant_url = qdrant_url
+        self.qdrant_api_key = qdrant_api_key
+        self.qdrant_cluster_url = qdrant_cluster_url
         self.collection_name = collection_name
         self.model = SentenceTransformer('all-MiniLM-L6-v2')  # Lightweight model for embeddings
-        self._ensure_collection_exists()
+
+        # Initialize Qdrant client but don't try to connect during initialization
+        # This prevents startup failures when Qdrant is not available
+        try:
+            from qdrant_client.http.exceptions import UnexpectedResponse
+
+            # Use different initialization based on configuration
+            if self.qdrant_cluster_url and self.qdrant_api_key:
+                # Cloud Qdrant cluster configuration
+                self.qdrant_client = QdrantClient(
+                    url=self.qdrant_cluster_url,
+                    api_key=self.qdrant_api_key,
+                    prefer_grpc=True  # Use gRPC for better performance in cloud
+                )
+            elif self.qdrant_api_key:
+                # Qdrant with API key (for self-hosted with authentication)
+                self.qdrant_client = QdrantClient(
+                    url=self.qdrant_url,
+                    api_key=self.qdrant_api_key
+                )
+            else:
+                # Local Qdrant (no authentication)
+                self.qdrant_client = QdrantClient(url=self.qdrant_url)
+
+            # Only try to ensure collection exists if we can connect
+            self._ensure_collection_exists()
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Could not initialize Qdrant connection: {e}. Service will attempt to connect when needed.")
+            self.qdrant_client = None
 
     def _ensure_collection_exists(self):
         """Ensure the Qdrant collection exists with proper configuration"""
         try:
+            # Initialize client if it's not already initialized
+            if self.qdrant_client is None:
+                # Use the same initialization logic as in __init__
+                if self.qdrant_cluster_url and self.qdrant_api_key:
+                    # Cloud Qdrant cluster configuration
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_cluster_url,
+                        api_key=self.qdrant_api_key,
+                        prefer_grpc=True
+                    )
+                elif self.qdrant_api_key:
+                    # Qdrant with API key (for self-hosted with authentication)
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_url,
+                        api_key=self.qdrant_api_key
+                    )
+                else:
+                    # Local Qdrant (no authentication)
+                    self.qdrant_client = QdrantClient(url=self.qdrant_url)
+
             # Check if collection exists
             collections = self.qdrant_client.get_collections()
             collection_names = [c.name for c in collections.collections]
@@ -39,6 +91,9 @@ class VectorService:
                 logging.info(f"Qdrant collection {self.collection_name} already exists")
         except Exception as e:
             logging.error(f"Error ensuring collection exists: {e}")
+            # Don't raise the exception to allow graceful degradation
+            # The service will attempt to reconnect when needed
+            self.qdrant_client = None
             raise
 
     def create_embedding(self, text: str) -> List[float]:
@@ -61,6 +116,26 @@ class VectorService:
     async def index_content(self, content_id: str, content: str, metadata: Dict[str, Any] = None) -> bool:
         """Index content in Qdrant with proper chunking"""
         try:
+            # Initialize client if it's not already initialized
+            if self.qdrant_client is None:
+                # Use the same initialization logic as in __init__
+                if self.qdrant_cluster_url and self.qdrant_api_key:
+                    # Cloud Qdrant cluster configuration
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_cluster_url,
+                        api_key=self.qdrant_api_key,
+                        prefer_grpc=True
+                    )
+                elif self.qdrant_api_key:
+                    # Qdrant with API key (for self-hosted with authentication)
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_url,
+                        api_key=self.qdrant_api_key
+                    )
+                else:
+                    # Local Qdrant (no authentication)
+                    self.qdrant_client = QdrantClient(url=self.qdrant_url)
+
             # Chunk the content
             chunks = self.chunk_text(content)
 
@@ -70,7 +145,7 @@ class VectorService:
                 embedding = self.create_embedding(chunk)
 
                 point = models.PointStruct(
-                    id=f"{content_id}_{i}",
+                    id=str(uuid.uuid4()),  # Use UUID instead of content_id_i format
                     vector=embedding,
                     payload={
                         "content_id": content_id,
@@ -92,6 +167,8 @@ class VectorService:
 
         except Exception as e:
             logging.error(f"Error indexing content {content_id}: {e}")
+            # Reset client to None so it will reconnect on next attempt
+            self.qdrant_client = None
             return False
 
     async def index_file(self, file_path: str, content_id: str = None, metadata: Dict[str, Any] = None) -> bool:
@@ -123,6 +200,26 @@ class VectorService:
     def search(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Search for relevant content based on query"""
         try:
+            # Initialize client if it's not already initialized
+            if self.qdrant_client is None:
+                # Use the same initialization logic as in __init__
+                if self.qdrant_cluster_url and self.qdrant_api_key:
+                    # Cloud Qdrant cluster configuration
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_cluster_url,
+                        api_key=self.qdrant_api_key,
+                        prefer_grpc=True
+                    )
+                elif self.qdrant_api_key:
+                    # Qdrant with API key (for self-hosted with authentication)
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_url,
+                        api_key=self.qdrant_api_key
+                    )
+                else:
+                    # Local Qdrant (no authentication)
+                    self.qdrant_client = QdrantClient(url=self.qdrant_url)
+
             query_embedding = self.create_embedding(query)
 
             search_results = self.qdrant_client.search(
@@ -147,11 +244,33 @@ class VectorService:
 
         except Exception as e:
             logging.error(f"Error searching: {e}")
+            # Reset client to None so it will reconnect on next attempt
+            self.qdrant_client = None
             return []
 
     def delete_content(self, content_id: str) -> bool:
         """Delete all chunks associated with a content ID"""
         try:
+            # Initialize client if it's not already initialized
+            if self.qdrant_client is None:
+                # Use the same initialization logic as in __init__
+                if self.qdrant_cluster_url and self.qdrant_api_key:
+                    # Cloud Qdrant cluster configuration
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_cluster_url,
+                        api_key=self.qdrant_api_key,
+                        prefer_grpc=True
+                    )
+                elif self.qdrant_api_key:
+                    # Qdrant with API key (for self-hosted with authentication)
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_url,
+                        api_key=self.qdrant_api_key
+                    )
+                else:
+                    # Local Qdrant (no authentication)
+                    self.qdrant_client = QdrantClient(url=self.qdrant_url)
+
             # Find all points with this content_id
             search_filter = models.Filter(
                 must=[
@@ -183,11 +302,33 @@ class VectorService:
 
         except Exception as e:
             logging.error(f"Error deleting content {content_id}: {e}")
+            # Reset client to None so it will reconnect on next attempt
+            self.qdrant_client = None
             return False
 
     def get_content_chunks(self, content_id: str) -> List[Dict[str, Any]]:
         """Retrieve all chunks for a specific content ID"""
         try:
+            # Initialize client if it's not already initialized
+            if self.qdrant_client is None:
+                # Use the same initialization logic as in __init__
+                if self.qdrant_cluster_url and self.qdrant_api_key:
+                    # Cloud Qdrant cluster configuration
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_cluster_url,
+                        api_key=self.qdrant_api_key,
+                        prefer_grpc=True
+                    )
+                elif self.qdrant_api_key:
+                    # Qdrant with API key (for self-hosted with authentication)
+                    self.qdrant_client = QdrantClient(
+                        url=self.qdrant_url,
+                        api_key=self.qdrant_api_key
+                    )
+                else:
+                    # Local Qdrant (no authentication)
+                    self.qdrant_client = QdrantClient(url=self.qdrant_url)
+
             search_filter = models.Filter(
                 must=[
                     models.FieldCondition(
@@ -218,6 +359,8 @@ class VectorService:
 
         except Exception as e:
             logging.error(f"Error retrieving content chunks {content_id}: {e}")
+            # Reset client to None so it will reconnect on next attempt
+            self.qdrant_client = None
             return []
 
 

@@ -12,7 +12,13 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 # Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost:5432/textbook_db")
+NEON_DB_URL = os.getenv("NEON_DATABASE_URL", os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost:5432/textbook_db"))
+
+# Ensure the URL uses the asyncpg driver if it's a PostgreSQL URL
+if NEON_DB_URL.startswith("postgresql://"):
+    DATABASE_URL = NEON_DB_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+else:
+    DATABASE_URL = NEON_DB_URL
 
 # Create async engine
 engine = create_async_engine(

@@ -64,20 +64,38 @@ docker-compose up --build
 # Qdrant UI: http://localhost:6333
 ```
 
-### Option 2: Production Deployment with Docker
+### Option 2: Production Deployment with Docker (Recommended)
 
-For production environments:
+For production environments, use the production docker-compose configuration:
 
 ```bash
-# Build and start services in detached mode
-docker-compose up --build -d
+# Build and start services in detached mode using production config
+docker-compose -f docker-compose.prod.yml up --build -d
 
 # Check service status
-docker-compose ps
+docker-compose -f docker-compose.prod.yml ps
 
 # Monitor logs
-docker-compose logs -f
+docker-compose -f docker-compose.prod.yml logs -f
 ```
+
+### Option 3: Automated Production Deployment
+
+Use the provided deployment script for simplified production deployment:
+
+```bash
+# Make the script executable
+chmod +x deploy.sh
+
+# Run the deployment script
+./deploy.sh
+```
+
+The deployment script will:
+- Validate all required environment variables
+- Build and start production services
+- Perform health checks
+- Provide status updates
 
 ### Option 3: Cloud Deployment (AWS/GCP/Azure)
 
